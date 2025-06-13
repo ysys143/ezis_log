@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Precursor Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            line-height: 1.45;
+            background: #E8E8E8;
+        }
+        .pyramid-bar {
+            transition: all 0.3s ease;
+        }
+        .pyramid-bar:hover {
+            transform: scaleY(1.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .timeline-item:hover {
+            background-color: rgba(93, 173, 226, 0.1);
+        }
+        .header-gradient {
+            background: #4A4A4A;
+        }
+        .panel-gradient {
+            background: #E8E8E8;
+            border: 1px solid #D0D0D0;
+        }
+        .status-box {
+            background: #5DADE2;
+            color: white;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .status-warning {
+            background: #F39C12;
+        }
+        .status-critical {
+            background: #E67E22;
+        }
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(241, 245, 249, 0.5);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #94A3B8 0%, #64748B 100%);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #64748B 0%, #475569 100%);
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen flex flex-col text-[14px] font-normal">
+    <!-- 헤더 -->
+    <header class="header-gradient border-b border-blue-300 px-4 py-2 flex-shrink-0 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <h1 class="text-[20px] font-bold text-white">Incident Precursor Analytics</h1>
+                <span class="bg-white bg-opacity-20 text-white text-[10px] font-normal px-2 py-1 rounded-full border border-white border-opacity-30">실시간 분석</span>
+            </div>
+            <div class="flex items-center space-x-2 text-blue-100">
+                <span class="text-[11px] font-normal">마지막 업데이트: <span class="font-semibold text-white">2025-06-13 15:30:25</span></span>
+                <button class="bg-white bg-opacity-20 border border-white border-opacity-30 text-white px-2 py-1 rounded text-[11px] font-normal hover:bg-opacity-30 transition-all">
+                    <i class="fas fa-sync-alt mr-1"></i>새로고침
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 시스템 모니터링 상태 -->
+    <div class="bg-gray-200 border-b border-gray-400 px-4 py-2 flex-shrink-0">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="text-[12px] font-semibold text-gray-700">시스템 상태</div>
+                <div class="flex space-x-2">
+                    <div class="status-box text-[10px] px-2 py-1">정상: 28</div>
+                    <div class="status-box status-warning text-[10px] px-2 py-1">경고: 2</div>
+                    <div class="status-box status-critical text-[10px] px-2 py-1">위험: 1</div>
+                </div>
+            </div>
+            <div class="text-[10px] text-gray-600">[2025-06-13]</div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="flex-1 flex p-3 space-x-3 min-h-0">
+        <!-- Left Panel - Heinrich Pyramid -->
+        <div class="w-1/2 panel-gradient border-t-[3px] border-gray-400 p-4 flex flex-col min-h-0">
+            <h2 class="text-sm font-semibold text-gray-800 mb-3">사건 전조 로그 비율 (최근 24시간)</h2>
+            
+            <!-- Pyramid Chart Container -->
+            <div class="flex-1 flex items-end justify-center space-x-8 min-h-0">
+                <!-- Critical Errors (Red) -->
+                <div class="flex flex-col items-center">
+                    <div class="pyramid-bar bg-red-500 w-20 h-12 mb-3 flex items-center justify-center text-white text-sm font-semibold">
+                        1건
+                    </div>
+                    <div class="text-xs text-gray-600 text-center">
+                        <div class="font-medium">치명적 오류</div>
+                        <div class="text-red-500 font-semibold">위험</div>
+                    </div>
+                </div>
+
+                <!-- Minor Errors (Orange) -->
+                <div class="flex flex-col items-center">
+                    <div class="pyramid-bar bg-orange-500 w-28 h-28 mb-3 flex items-center justify-center text-white text-sm font-semibold">
+                        29건
+                    </div>
+                    <div class="text-xs text-gray-600 text-center">
+                        <div class="font-medium">경미 오류</div>
+                        <div class="text-orange-500 font-semibold">주의</div>
+                    </div>
+                </div>
+
+                <!-- Warnings and Retries (Yellow) -->
+                <div class="flex flex-col items-center">
+                    <div class="pyramid-bar bg-yellow-500 w-36 h-40 mb-3 flex items-center justify-center text-white text-sm font-semibold">
+                        300건
+                    </div>
+                    <div class="text-xs text-gray-600 text-center">
+                        <div class="font-medium">경고 및 재시도</div>
+                        <div class="text-yellow-600 font-semibold">정상</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pyramid Analysis Summary -->
+            <div class="mt-4 space-y-2 text-xs flex-shrink-0">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">총 로그 건수:</span>
+                    <span class="font-semibold">330건</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">위험 비율:</span>
+                    <span class="text-red-500 font-semibold">9.1% (30/330)</span>
+                </div>
+                <div class="flex justify-center">
+                    <div class="px-3 py-1 bg-green-100 text-green-700 font-medium text-xs rounded">
+                        위험 레벨 1 (정상)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Timeline and Policy -->
+        <div class="w-1/2 space-y-3 flex flex-col min-h-0">
+            <!-- Timeline Section -->
+            <div class="flex-1 panel-gradient border-t-[3px] border-gray-400 p-4 min-h-0">
+                <h2 class="text-sm font-semibold text-gray-800 mb-3">최근 주요 변경 이벤트</h2>
+                
+                <!-- Timeline Container -->
+                <div class="relative mb-4">
+                    <!-- Timeline Line -->
+                    <div class="absolute left-0 right-0 top-4 h-0.5 bg-gray-300"></div>
+                    
+                    <!-- Timeline Items -->
+                    <div class="flex justify-between relative">
+                        <!-- Event 1 -->
+                        <div class="timeline-item flex flex-col items-center p-2 rounded">
+                            <div class="w-2 h-2 bg-blue-500 rounded-full border border-white shadow-sm mb-1"></div>
+                            <div class="text-xs text-gray-500 mb-1">08:00</div>
+                            <div class="text-xs text-center max-w-16">
+                                <div class="font-medium text-gray-800">배포 완료</div>
+                                <div class="text-gray-600">v1.2.3</div>
+                            </div>
+                        </div>
+
+                        <!-- Event 2 -->
+                        <div class="timeline-item flex flex-col items-center p-2 rounded">
+                            <div class="w-2 h-2 bg-orange-500 rounded-full border border-white shadow-sm mb-1"></div>
+                            <div class="text-xs text-gray-500 mb-1">11:00</div>
+                            <div class="text-xs text-center max-w-16">
+                                <div class="font-medium text-gray-800">권한 변경</div>
+                                <div class="text-gray-600">관리자</div>
+                            </div>
+                        </div>
+
+                        <!-- Event 3 -->
+                        <div class="timeline-item flex flex-col items-center p-2 rounded">
+                            <div class="w-2 h-2 bg-green-500 rounded-full border border-white shadow-sm mb-1"></div>
+                            <div class="text-xs text-gray-500 mb-1">14:00</div>
+                            <div class="text-xs text-center max-w-16">
+                                <div class="font-medium text-gray-800">구성 수정</div>
+                                <div class="text-gray-600">서비스</div>
+                            </div>
+                        </div>
+
+                        <!-- Current Time Marker -->
+                        <div class="timeline-item flex flex-col items-center p-2 rounded">
+                            <div class="w-2 h-2 bg-red-500 rounded-full border border-white shadow-sm mb-1 animate-pulse"></div>
+                            <div class="text-xs text-red-600 mb-1">15:30</div>
+                            <div class="text-xs text-center max-w-16">
+                                <div class="font-medium text-gray-800">현재</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Impact Analysis -->
+                <div class="space-y-2">
+                    <div class="bg-blue-50 p-2 border-l-2 border-blue-500">
+                        <div class="font-medium text-blue-800 text-xs mb-1">배포 영향</div>
+                        <div class="text-blue-600 text-xs">새 버전 배포 후 경고 로그 15% 증가</div>
+                    </div>
+                    <div class="bg-orange-50 p-2 border-l-2 border-orange-500">
+                        <div class="font-medium text-orange-800 text-xs mb-1">권한 변경 영향</div>
+                        <div class="text-orange-600 text-xs">관리자 권한 변경 후 인증 오류 8건 발생</div>
+                    </div>
+                    <div class="bg-green-50 p-2 border-l-2 border-green-500">
+                        <div class="font-medium text-green-800 text-xs mb-1">구성 변경 영향</div>
+                        <div class="text-green-600 text-xs">서비스 구성 최적화로 응답시간 12% 개선</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Policy Section -->
+            <div class="flex-shrink-0 panel-gradient border-t-[3px] border-gray-400 p-3">
+                <h3 class="text-sm font-semibold text-gray-800 mb-2">자동 위험 레벨 승격 정책</h3>
+                <div class="text-xs text-gray-600 space-y-1 mb-3">
+                    <div>• <span class="font-medium">레벨 2:</span> 경고 이상 70% 초과 시 자동 승격</div>
+                    <div>• <span class="font-medium">레벨 3:</span> 치명적 오류 5건 이상 또는 전체 오류율 90% 초과</div>
+                    <div>• <span class="font-medium">알림:</span> 레벨 2 이상 시 Slack 및 SMS 발송</div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="text-xs text-gray-500">업데이트: 2025-06-13 15:30:25</div>
+                    <div class="flex space-x-1">
+                        <button class="px-2 py-1 bg-blue-500 text-white text-xs font-medium hover:bg-blue-600 transition-colors rounded">
+                            정책 설정
+                        </button>
+                        <button class="px-2 py-1 bg-gray-200 text-gray-700 text-xs font-medium hover:bg-gray-300 transition-colors rounded">
+                            히스토리
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

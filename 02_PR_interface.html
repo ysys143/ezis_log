@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>동적 규칙 PR 인터페이스</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            line-height: 1.45;
+            background: #E8E8E8;
+        }
+        .slack-message {
+            background: #E8E8E8;
+            border: 1px solid #D0D0D0;
+            box-shadow: none;
+        }
+        .alert-header {
+            color: #E74C3C;
+            font-weight: bold;
+        }
+        .btn-approve {
+            background: #28A745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-approve:hover {
+            background: #218838;
+        }
+        .btn-reject {
+            background: #6C757D;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-reject:hover {
+            background: #5A6268;
+        }
+        .btn-edit {
+            background: #E8E8E8;
+            color: #495057;
+            border: 1px solid #D0D0D0;
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-edit:hover {
+            background: #DDDDDD;
+            border-color: #CCCCCC;
+        }
+        .timeline {
+            background: #E8E8E8;
+            padding: 15px;
+            border-left: 4px solid #5DADE2;
+            border: 1px solid #D0D0D0;
+        }
+        .code-block {
+            background: #E8E8E8;
+            border: 1px solid #D0D0D0;
+            padding: 12px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            color: #495057;
+        }
+        .header-gradient {
+            background: #4A4A4A;
+        }
+        .panel-gradient {
+            background: #E8E8E8;
+            border: 1px solid #D0D0D0;
+        }
+        .status-box {
+            background: #5DADE2;
+            color: white;
+            padding: 6px 10px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .status-warning {
+            background: #F39C12;
+        }
+        .status-critical {
+            background: #E67E22;
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen flex flex-col">
+    <!-- 헤더 -->
+    <header class="header-gradient border-b border-gray-500 px-4 py-3 flex-shrink-0">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <h1 class="text-xl font-bold text-white">동적 규칙 PR 인터페이스</h1>
+                <span class="bg-white bg-opacity-20 text-white text-xs px-2 py-1 border border-white border-opacity-30">실시간 알림</span>
+            </div>
+            <div class="flex items-center space-x-2 text-gray-200">
+                <span class="text-sm">마지막 업데이트: <span class="font-semibold text-white">2025-01-27 14:32:15</span></span>
+                <button class="bg-white bg-opacity-20 border border-white border-opacity-30 text-white px-3 py-1 text-sm hover:bg-opacity-30 transition-all">
+                    <i class="fas fa-sync-alt mr-1"></i>새로고침
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 시스템 모니터링 상태 -->
+    <div class="bg-gray-200 border-b border-gray-400 px-2 py-1 flex-shrink-0">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="text-[12px] font-semibold text-gray-700">시스템 모니터링</div>
+                <div class="flex space-x-2">
+                    <div class="status-box text-[10px] px-2 py-1">WEB: 36</div>
+                    <div class="status-box text-[10px] px-2 py-1">WAS: 24</div>
+                    <div class="status-box text-[10px] px-2 py-1">DB: 12</div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-[12px] font-semibold text-gray-700">경고 및 위험 시스템</div>
+                <div class="flex space-x-2">
+                    <div class="status-box status-warning text-[10px] px-2 py-1">WEB: 20</div>
+                    <div class="status-box status-warning text-[10px] px-2 py-1">WAS: 12</div>
+                    <div class="status-box status-critical text-[10px] px-2 py-1">DB: 12</div>
+                </div>
+            </div>
+            <div class="text-[10px] text-gray-600">[2025-04-01]</div>
+        </div>
+    </div>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="flex-1 flex items-center justify-center p-6">
+        <div class="max-w-4xl w-full">
+            <!-- Slack 메시지 스타일 카드 -->
+            <div class="slack-message p-6 mb-6">
+                <!-- 메시지 헤더 -->
+                <div class="mb-4">
+                    <h2 class="alert-header text-xl flex items-center">
+                        <span class="text-2xl mr-2">🚨</span>
+                        [알림 룰 생성 요청] 클러스터 #102
+                    </h2>
+                    <div class="text-sm text-gray-500 mt-1">
+                        <i class="fas fa-clock mr-1"></i>
+                        방금 전 · AI 로그 분석 시스템
+                    </div>
+                </div>
+
+                <!-- 메시지 본문 -->
+                <div class="mb-6 space-y-4">
+                    <div class="text-gray-800">
+                        <p class="text-lg mb-3">
+                            <strong>요약:</strong> config.yaml 누락 오류, 최근 30분간 24건 발생
+                        </p>
+                        
+                        <div class="bg-orange-100 border-l-4 border-orange-400 p-3 mb-4">
+                            <p class="text-sm text-orange-800">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                <strong>긴급도:</strong> 높음 - 사용자 인증 서비스 중단 위험
+                            </p>
+                        </div>
+
+                        <p class="font-semibold text-gray-700 mb-2">추천 알림 조건:</p>
+                        <div class="code-block">
+                            ERROR AND message contains 'FileNotFoundException' AND message contains 'config.yaml'
+                        </div>
+                        
+                        <div class="mt-4 text-sm text-gray-600">
+                            <p><strong>영향 범위:</strong> 사용자 인증 시스템</p>
+                            <p><strong>발생 빈도:</strong> 24건 / 30분</p>
+                            <p><strong>예상 알림 빈도:</strong> 실시간 (중복 제거 5분)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 액션 버튼 -->
+                <div class="flex space-x-3 mb-4">
+                    <button class="btn-approve" onclick="approveRule()">
+                        <i class="fas fa-check mr-2"></i>룰 승인
+                    </button>
+                    <button class="btn-reject" onclick="rejectRule()">
+                        <i class="fas fa-times mr-2"></i>거절
+                    </button>
+                    <button class="btn-edit" onclick="editRule()">
+                        <i class="fas fa-edit mr-2"></i>수정 후 승인
+                    </button>
+                </div>
+
+                <!-- 추가 정보 -->
+                <div class="text-xs text-gray-500 border-t border-gray-400 pt-3">
+                    <div class="flex items-center space-x-4">
+                        <span><i class="fas fa-user-circle mr-1"></i>요청자: AI 시스템</span>
+                        <span><i class="fas fa-server mr-1"></i>대상 환경: Production</span>
+                        <span><i class="fas fa-bell mr-1"></i>알림 채널: #alerts-critical</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 타임라인 -->
+            <div class="timeline">
+                <h3 class="font-semibold text-gray-700 mb-3 flex items-center">
+                    <i class="fas fa-timeline mr-2"></i>처리 프로세스
+                </h3>
+                <div class="flex items-center space-x-4 text-sm text-gray-600">
+                    <span class="flex items-center">
+                        <span class="w-3 h-3 bg-blue-500 mr-2"></span>
+                        룰 승인
+                    </span>
+                    <i class="fas fa-arrow-right text-gray-400"></i>
+                    <span class="flex items-center">
+                        <span class="w-3 h-3 bg-yellow-500 mr-2"></span>
+                        룰셋 자동 반영
+                    </span>
+                    <i class="fas fa-arrow-right text-gray-400"></i>
+                    <span class="flex items-center">
+                        <span class="w-3 h-3 bg-green-500 mr-2"></span>
+                        Slack 알림 활성화 완료
+                    </span>
+                </div>
+                <div class="mt-2 text-xs text-gray-500">
+                    예상 소요 시간: 약 30초
+                </div>
+            </div>
+
+            <!-- 관련 정보 -->
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="panel-gradient p-4">
+                    <h4 class="font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-chart-line mr-2 text-blue-500"></i>관련 메트릭
+                    </h4>
+                    <div class="space-y-1 text-sm text-gray-600">
+                        <p>• 에러율: 85% 증가</p>
+                        <p>• 응답 시간: 평균 2.3초 지연</p>
+                        <p>• 영향받은 사용자: 약 1,200명</p>
+                    </div>
+                </div>
+                
+                <div class="panel-gradient p-4">
+                    <h4 class="font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-history mr-2 text-green-500"></i>유사 사례
+                    </h4>
+                    <div class="space-y-1 text-sm text-gray-600">
+                        <p>• 2024-12-01: db_config.json 누락</p>
+                        <p>• 2024-11-15: 라이브러리 파일 누락</p>
+                        <p>• 해결 시간: 평균 15분</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 상태 메시지 (숨김 상태) -->
+    <div id="statusMessage" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 shadow-lg hidden">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span id="statusText">처리 완료</span>
+    </div>
+
+    <script>
+        function approveRule() {
+            showStatus('룰이 승인되었습니다. 시스템에 반영 중...', 'success');
+            
+            // 시뮬레이션: 3초 후 완료 메시지
+            setTimeout(() => {
+                showStatus('알림 룰이 성공적으로 생성되었습니다!', 'success');
+            }, 3000);
+        }
+
+        function rejectRule() {
+            showStatus('요청이 거절되었습니다.', 'info');
+        }
+
+        function editRule() {
+            // 간단한 프롬프트로 시뮬레이션
+            const newCondition = prompt('알림 조건을 수정하세요:', 
+                'ERROR AND message contains \'FileNotFoundException\' AND message contains \'config.yaml\'');
+            
+            if (newCondition) {
+                document.querySelector('.code-block').textContent = newCondition;
+                showStatus('조건이 수정되었습니다. 승인 후 적용됩니다.', 'info');
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            const statusText = document.getElementById('statusText');
+            
+            statusText.textContent = message;
+            
+            // 색상 변경
+            statusDiv.className = 'fixed top-4 right-4 px-4 py-2 shadow-lg';
+            if (type === 'success') {
+                statusDiv.className += ' bg-green-500 text-white';
+            } else if (type === 'info') {
+                statusDiv.className += ' bg-blue-500 text-white';
+            } else if (type === 'error') {
+                statusDiv.className += ' bg-red-500 text-white';
+            }
+            
+            statusDiv.classList.remove('hidden');
+            
+            // 3초 후 숨김
+            setTimeout(() => {
+                statusDiv.classList.add('hidden');
+            }, 3000);
+        }
+
+        // 실시간 업데이트 시뮬레이션
+        setInterval(() => {
+            const timestamp = document.querySelector('header span.text-white');
+            const now = new Date();
+            timestamp.textContent = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        }, 1000);
+    </script>
+</body>
+</html>
