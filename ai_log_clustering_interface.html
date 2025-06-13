@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 로그 클러스터링 및 주석 인터페이스</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            line-height: 1.45;
+            background: #E8E8E8;
+        }
+        .cluster-card {
+            border-left: 2px solid #D0D0D0;
+            background: #E8E8E8;
+        }
+        .cluster-card:hover {
+            background-color: #DDDDDD;
+            cursor: pointer;
+        }
+        .selected-cluster {
+            border-left: 3px solid #5DADE2;
+            background: #D8D8D8;
+        }
+        .severity-badge {
+            background: #D8D8D8;
+            color: #666666;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border-radius: 3px;
+            border: 1px solid #CCCCCC;
+        }
+        .severity-high {
+            background: #FDE2CC;
+            color: #E67E22;
+            border-color: #E67E22;
+        }
+        .severity-medium {
+            background: #D6EAF8;
+            color: #5DADE2;
+            border-color: #5DADE2;
+        }
+        .severity-low {
+            background: #D8D8D8;
+            color: #999999;
+            border-color: #CCCCCC;
+        }
+        .header-gradient {
+            background: #4A4A4A;
+        }
+        .panel-gradient {
+            background: #E8E8E8;
+            border: 1px solid #D0D0D0;
+        }
+        .status-box {
+            background: #5DADE2;
+            color: white;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .status-warning {
+            background: #F39C12;
+        }
+        .status-critical {
+            background: #E67E22;
+        }
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(241, 245, 249, 0.5);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #94A3B8 0%, #64748B 100%);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #64748B 0%, #475569 100%);
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen flex flex-col text-[14px] font-normal">
+    <!-- 헤더 -->
+    <header class="header-gradient border-b border-blue-300 px-2 py-1.5 flex-shrink-0 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-1.5">
+                <h1 class="text-[20px] font-bold text-white">AI 로그 클러스터링 대시보드</h1>
+                <span class="bg-white bg-opacity-20 text-white text-[10px] font-normal px-1 py-0.5 rounded-full border border-white border-opacity-30">실시간 분석</span>
+            </div>
+            <div class="flex items-center space-x-1 text-blue-100">
+                <span class="text-[10px] font-normal">마지막 업데이트: <span class="font-semibold text-white">2025-01-27 14:32:15</span></span>
+                <button class="bg-white bg-opacity-20 border border-white border-opacity-30 text-white px-1.5 py-0.5 rounded-md text-[11px] font-normal hover:bg-opacity-30 transition-all">
+                    <i class="fas fa-sync-alt mr-0.5"></i>새로고침
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 시스템 모니터링 상태 -->
+    <div class="bg-gray-200 border-b border-gray-400 px-2 py-1 flex-shrink-0">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="text-[12px] font-semibold text-gray-700">시스템 모니터링</div>
+                <div class="flex space-x-2">
+                    <div class="status-box text-[10px] px-2 py-1">WEB: 36</div>
+                    <div class="status-box text-[10px] px-2 py-1">WAS: 24</div>
+                    <div class="status-box text-[10px] px-2 py-1">DB: 12</div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-[12px] font-semibold text-gray-700">경고 및 위험 시스템</div>
+                <div class="flex space-x-2">
+                    <div class="status-box status-warning text-[10px] px-2 py-1">WEB: 20</div>
+                    <div class="status-box status-warning text-[10px] px-2 py-1">WAS: 12</div>
+                    <div class="status-box status-critical text-[10px] px-2 py-1">DB: 12</div>
+                </div>
+            </div>
+            <div class="text-[10px] text-gray-600">[2025-04-01]</div>
+        </div>
+    </div>
+
+    <div class="flex flex-1 py-0.5 px-1.5">
+        <!-- 좌측 패널: 로그 클러스터 목록 -->
+        <div class="w-[320px] panel-gradient mr-1.5 flex flex-col border-t-[3px] border-gray-400">
+            <div class="px-4 py-1.5 border-b border-gray-400">
+                <h2 class="text-[17px] font-semibold text-gray-800 mb-0.5">로그 클러스터 목록 (최근 30분)</h2>
+                <div class="flex items-center justify-between text-[10px] font-normal text-gray-600">
+                    <span>총 클러스터</span>
+                    <span class="status-box text-[10px]">15개</span>
+                </div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto px-0 py-0.5 space-y-0.5">
+                <!-- 클러스터 카드 1 (선택됨) -->
+                <div class="cluster-card selected-cluster px-4 py-1 flex items-center h-[68px]">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-0">
+                            <h2 class="text-[14px] text-gray-900 font-normal">구성 파일 누락 오류</h2>
+                            <span class="w-[50px] text-right">
+                                <span class="severity-badge severity-high">높음</span>
+                            </span>
+                        </div>
+                        <p class="text-[12px] text-gray-600 leading-normal">ERROR FileNotFoundException: config.yaml</p>
+                        <div class="flex items-center justify-between text-[12px] font-normal text-gray-500 mt-0.5">
+                            <span class="text-[12px]">사용자 인증</span>
+                            <span class="text-[12px]"><span class="font-bold">24</span>건 / <span class="font-normal">2분</span> 전</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 클러스터 카드 2 -->
+                <div class="cluster-card bg-white px-4 py-1 flex items-center h-[68px]">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-0">
+                            <h2 class="text-[14px] text-gray-900 font-normal">DB 연결 타임아웃</h2>
+                            <span class="w-[50px] text-right">
+                                <span class="severity-badge severity-medium">중간</span>
+                            </span>
+                        </div>
+                        <p class="text-[12px] text-gray-600 leading-normal">WARN Connection timeout 30s</p>
+                        <div class="flex items-center justify-between text-[12px] font-normal text-gray-500 mt-0.5">
+                            <span class="text-[12px]">주문 처리</span>
+                            <span class="text-[12px]"><span class="font-bold">8</span>건 / <span class="font-normal">5분</span> 전</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 클러스터 카드 3 -->
+                <div class="cluster-card bg-white px-4 py-1 flex items-center h-[68px]">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-0">
+                            <h2 class="text-[14px] text-gray-900 font-normal">캐시 만료 알림</h2>
+                            <span class="w-[50px] text-right">
+                                <span class="severity-badge severity-low">낮음</span>
+                            </span>
+                        </div>
+                        <p class="text-[12px] text-gray-600 leading-normal">INFO Cache expired user_session</p>
+                        <div class="flex items-center justify-between text-[12px] font-normal text-gray-500 mt-0.5">
+                            <span class="text-[12px]">세션 관리</span>
+                            <span class="text-[12px]"><span class="font-bold">3</span>건 / <span class="font-normal">12분</span> 전</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 클러스터 카드 4 -->
+                <div class="cluster-card bg-white px-4 py-1 flex items-center h-[68px]">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-0">
+                            <h2 class="text-[14px] text-gray-900 font-normal">메모리 부족 경고</h2>
+                            <span class="w-[50px] text-right">
+                                <span class="severity-badge severity-low">정보</span>
+                            </span>
+                        </div>
+                        <p class="text-[12px] text-gray-600 leading-normal">ERROR OutOfMemoryError: Java heap</p>
+                        <div class="flex items-center justify-between text-[12px] font-normal text-gray-500 mt-0.5">
+                            <span class="text-[12px]">데이터 처리</span>
+                            <span class="text-[12px]"><span class="font-bold">15</span>건 / <span class="font-normal">8분</span> 전</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 클러스터 카드 5 -->
+                <div class="cluster-card bg-white px-4 py-1 flex items-center h-[68px]">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-0">
+                            <h2 class="text-[14px] text-gray-900 font-normal">인증 실패 시도</h2>
+                            <span class="w-[50px] text-right">
+                                <span class="severity-badge severity-high">높음</span>
+                            </span>
+                        </div>
+                        <p class="text-[12px] text-gray-600 leading-normal">ERROR Authentication failed for user</p>
+                        <div class="flex items-center justify-between text-[12px] font-normal text-gray-500 mt-0.5">
+                            <span class="text-[12px]">보안</span>
+                            <span class="text-[12px]"><span class="font-bold">45</span>건 / <span class="font-normal">1분</span> 전</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 클러스터 카드 6 -->
+                <div class="cluster-card bg-white px-4 py-1 flex items-center h-[68px]">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-0">
+                            <h2 class="text-[14px] text-gray-900 font-normal">네트워크 연결 문제</h2>
+                            <span class="w-[50px] text-right">
+                                <span class="severity-badge severity-medium">중간</span>
+                            </span>
+                        </div>
+                        <p class="text-[12px] text-gray-600 leading-normal">WARN Network connection dropped</p>
+                        <div class="flex items-center justify-between text-[12px] font-normal text-gray-500 mt-0.5">
+                            <span class="text-[12px]">인프라</span>
+                            <span class="text-[12px]"><span class="font-bold">12</span>건 / <span class="font-normal">7분</span> 전</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 클러스터 카드 7 -->
+                <div class="cluster-card bg-white px-4 py-1 flex items-center h-[68px]">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-0">
+                            <h2 class="text-[14px] text-gray-900 font-normal">API 응답 지연</h2>
+                            <span class="w-[50px] text-right">
+                                <span class="severity-badge severity-low">낮음</span>
+                            </span>
+                        </div>
+                        <p class="text-[12px] text-gray-600 leading-normal">INFO API response time exceeded</p>
+                        <div class="flex items-center justify-between text-[12px] font-normal text-gray-500 mt-0.5">
+                            <span class="text-[12px]">서비스 운영</span>
+                            <span class="text-[12px]"><span class="font-bold">6</span>건 / <span class="font-normal">10분</span> 전</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 클러스터 카드 8 -->
+                <div class="cluster-card bg-white px-4 py-1 flex items-center h-[68px]">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-0">
+                            <h2 class="text-[14px] text-gray-900 font-normal">데이터베이스 연결 실패</h2>
+                            <span class="w-[50px] text-right">
+                                <span class="severity-badge severity-high">높음</span>
+                            </span>
+                        </div>
+                        <p class="text-[12px] text-gray-600 leading-normal">ERROR Failed to connect to database</p>
+                        <div class="flex items-center justify-between text-[12px] font-normal text-gray-500 mt-0.5">
+                            <span class="text-[12px]">DB 관리</span>
+                            <span class="text-[12px]"><span class="font-bold">30</span>건 / <span class="font-normal">1분</span> 전</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 클러스터 카드 9 -->
+                <div class="cluster-card bg-white px-4 py-1 flex items-center h-[68px]">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-0">
+                            <h2 class="text-[14px] text-gray-900 font-normal">보안 그룹 정책 위반</h2>
+                            <span class="w-[50px] text-right">
+                                <span class="severity-badge severity-medium">중간</span>
+                            </span>
+                        </div>
+                        <p class="text-[12px] text-gray-600 leading-normal">WARN Security group policy violation detected</p>
+                        <div class="flex items-center justify-between text-[12px] font-normal text-gray-500 mt-0.5">
+                            <span class="text-[12px]">네트워크 보안</span>
+                            <span class="text-[12px]"><span class="font-bold">5</span>건 / <span class="font-normal">6분</span> 전</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 클러스터 카드 10 -->
+                <div class="cluster-card bg-white px-4 py-1 flex items-center h-[68px]">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-0">
+                            <h2 class="text-[14px] text-gray-900 font-normal">디스크 I/O 임계값 초과</h2>
+                            <span class="w-[50px] text-right">
+                                <span class="severity-badge">낮음</span>
+                            </span>
+                        </div>
+                        <p class="text-[12px] text-gray-600 leading-normal">INFO Disk I/O usage exceeded threshold</p>
+                        <div class="flex items-center justify-between text-[12px] font-normal text-gray-500 mt-0.5">
+                            <span class="text-[12px]">인프라 모니터링</span>
+                            <span class="text-[12px]"><span class="font-bold">10</span>건 / <span class="font-normal">15분</span> 전</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 클러스터 카드 11 -->
+                <div class="cluster-card bg-white px-4 py-1 flex items-center h-[68px]">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-0">
+                            <h2 class="text-[14px] text-gray-900 font-normal">서비스 재시작 알림</h2>
+                            <span class="w-[50px] text-right">
+                                <span class="severity-badge">정보</span>
+                            </span>
+                        </div>
+                        <p class="text-[12px] text-gray-600 leading-normal">INFO Service 'WebServer' restarted successfully</p>
+                        <div class="flex items-center justify-between text-[12px] font-normal text-gray-500 mt-0.5">
+                            <span class="text-[12px]">서비스 관리</span>
+                            <span class="text-[12px]"><span class="font-bold">2</span>건 / <span class="font-normal">20분</span> 전</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 클러스터 카드 12 -->
+                <div class="cluster-card bg-white px-4 py-1 flex items-center h-[68px]">
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-0">
+                            <h2 class="text-[14px] text-gray-900 font-normal">권한 없는 접근 시도</h2>
+                            <span class="w-[50px] text-right">
+                                <span class="severity-badge">높음</span>
+                            </span>
+                        </div>
+                        <p class="text-[12px] text-gray-600 leading-normal">WARN Abnormal access attempt detected from unknown IP</p>
+                        <div class="flex items-center justify-between text-[12px] font-normal text-gray-500 mt-0.5">
+                            <span class="text-[12px]">보안</span>
+                            <span class="text-[12px]"><span class="font-bold">3</span>건 / <span class="font-normal">22분</span> 전</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 우측 패널: 클러스터 상세 및 AI 주석 -->
+        <div class="flex-1 panel-gradient p-1.5 flex flex-col border-t-[3px] border-gray-400">
+            <!-- Header for right panel -->
+            <div class="flex items-center justify-between border-b border-gray-400 pb-1 mb-1">
+                <h2 class="text-[17px] font-semibold text-gray-800 flex-grow">클러스터 상세 및 AI 주석 <span class="font-normal text-[14px] text-blue-600">클러스터 #102</span></h2>
+                <div class="flex space-x-1 text-[11px] font-normal flex-shrink-0">
+                    <button class="flex items-center px-1.5 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-all">
+                        <i class="fas fa-file-invoice mr-0.5"></i>
+                        <span>알림 룰 변환</span>
+                    </button>
+                    <button class="flex items-center px-1.5 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-all">
+                        <i class="fab fa-slack mr-0.5"></i>
+                        <span>Slack 공유</span>
+                    </button>
+                    <button class="flex items-center px-1.5 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-all">
+                        <i class="fas fa-chart-bar mr-0.5"></i>
+                        <span>리포트</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 실시간 로그 스트림 -->
+            <div class="mb-0.5">
+                <h3 class="text-[14px] font-semibold text-gray-800 mb-0.5">실시간 로그 스트림</h3>
+                <div class="flex h-[300px] gap-1">
+                    <!-- 좌측: 로그 텍스트 (폭 더 줄임) -->
+                    <div class="flex-1 overflow-y-auto px-1 pt-1.5 pb-4 text-[9px] leading-normal bg-gray-300 border border-gray-400">
+                        <pre class="whitespace-pre-wrap">
+[2025-01-27 14:32:16] INFO User 'admin' logged in successfully
+[2025-01-27 14:32:17] DEBUG Starting processing request for API /data/fetch
+[2025-01-27 14:32:18] WARN Database connection pool exhaustion warning (remaining: 3)
+[2025-01-27 14:32:19] ERROR Exception occurred: NullPointerException in UserDAO.java:45
+[2025-01-27 14:32:20] INFO Cache data refresh completed (total 1200 items)
+[2025-01-27 14:32:21] WARN External API response delayed (API-X, >500ms)
+[2025-01-27 14:32:22] INFO Background job 'ReportGen' completed successfully
+[2025-01-27 14:32:23] ERROR Disk space low: /var/log (remaining: 5%)
+[2025-01-27 14:32:24] INFO New user 'testuser' registration request processed
+[2025-01-27 14:32:25] DEBUG Loading session data for 'abc-123'...
+[2025-01-27 14:32:26] WARN Abnormal access attempt detected from unknown IP (192.168.1.100)
+[2025-01-27 14:32:27] CRITICAL System service 'AuthService' terminated unexpectedly
+[2025-01-27 14:32:28] INFO Scheduled data backup initiated
+[2025-01-27 14:32:29] DEBUG Performing health check on all nodes
+[2025-01-27 14:32:30] INFO Report generated successfully: report_20250127.pdf
+[2025-01-27 14:32:31] WARN High CPU usage detected on server 'web-01' (85%)
+[2025-01-27 14:32:32] ERROR Database connection lost: Check network or DB status
+[2025-01-27 14:32:33] INFO User 'guest' logged out
+[2025-01-27 14:32:34] DEBUG Initiating graceful shutdown for service 'DataSync'
+[2025-01-27 14:32:35] WARN Slow query detected: SELECT * FROM orders WHERE amount > 1000
+[2025-01-27 14:32:36] INFO System backup initiated
+[2025-01-27 14:32:37] ERROR File corruption detected: /data/records.db
+[2025-01-27 14:32:38] INFO New software update available: v2.1.0
+[2025-01-27 14:32:39] WARN Unresponsive process detected: PID 1234
+[2025-01-27 14:32:40] INFO Email sent successfully to admin@example.com
+                        </pre>
+                    </div>
+                    
+                    <!-- 중앙: 첫 번째 이미지 (폭 더 늘림) -->
+                    <div class="w-[42.2%] bg-gray-300 border border-gray-400 flex items-center justify-center">
+                        <img src="1.png" alt="로그 분석 차트 1" class="max-w-full max-h-full object-contain">
+                    </div>
+                    
+                    <!-- 우측: 두 번째 이미지 (폭 조정) -->
+                    <div class="w-[41%] bg-gray-300 border border-gray-400 flex items-center justify-center">
+                        <img src="2.png" alt="로그 분석 차트 2" class="max-w-full max-h-full object-contain">
+                    </div>
+                </div>
+            </div>
+            <!-- AI 요약 분석 -->
+            <div class="mb-0.5 panel-gradient border-t-[3px] border-gray-400">
+                <h3 class="text-[14px] font-semibold text-gray-800 px-4 pt-1.5 pb-1 border-b border-gray-400">AI 요약 분석</h3>
+                <div class="px-4 py-1.5 pb-6 space-y-2">
+                    <p class="text-[12px] text-gray-800 leading-normal">
+                        <span class="font-semibold text-blue-700">긴급 상황 감지:</span> 구성 파일 누락 오류가 최근 배포 직후부터 집중적으로 발생하고 있습니다. 
+                        현재 24건의 오류가 2분 전까지 지속적으로 보고되고 있으며, 사용자 인증 서비스에 치명적인 영향을 미치고 있습니다.
+                    </p>
+                    <p class="text-[12px] text-gray-800 leading-normal">
+                        <span class="font-semibold text-blue-600">근본 원인 분석:</span> `config.yaml` 파일의 완전한 누락으로 인해 애플리케이션 초기화 과정에서 
+                        FileNotFoundException이 발생하고 있습니다. 이는 최근 v1.2.3 배포 과정에서 설정 파일이 올바르게 포함되지 않았거나, 
+                        배포 스크립트의 파일 경로 설정에 문제가 있을 가능성이 높습니다.
+                    </p>
+                    <p class="text-[12px] text-gray-800 leading-normal">
+                        <span class="font-semibold text-slate-600">비즈니스 영향도:</span> 사용자 인증 시스템의 완전한 중단으로 인해 신규 로그인, 세션 관리, 
+                        권한 검증 등 핵심 기능이 마비 상태입니다. 현재 활성 사용자들의 세션은 유지되고 있으나, 
+                        새로운 인증 요청은 모두 실패하고 있어 서비스 접근성에 심각한 문제가 발생하고 있습니다.
+                    </p>
+                    <p class="text-[12px] text-gray-800 leading-normal">
+                        <span class="font-semibold text-slate-700">권장 조치사항:</span> 즉시 `config.yaml` 파일을 올바른 경로에 배치하고 애플리케이션을 재시작해야 합니다. 
+                        동시에 배포 파이프라인의 설정 파일 포함 여부를 검증하고, 향후 유사한 문제를 방지하기 위한 
+                        배포 전 검증 단계를 추가할 것을 강력히 권장합니다.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-1.5 mb-0.5">
+                <!-- 위험도 평가 -->
+                <div class="bg-orange-100 border-t-[3px] border-orange-400 flex flex-col">
+                    <h3 class="text-[14px] font-semibold text-gray-800 px-4 pt-1.5 pb-1 border-b border-orange-400">위험도 평가</h3>
+                    <div class="flex flex-col items-start px-4 py-1.5 flex-grow bg-orange-200 border-l-[4px] border-orange-400 text-[12px] text-gray-700 leading-normal">
+                        <div class="flex items-center space-x-0.5 text-[17px] text-orange-600 font-semibold mb-0.5">
+                            <span>높음 (5/5)</span>
+                        </div>
+                        <span>예상 영향도: <span class="font-semibold text-gray-900">서비스 중단 위험</span></span>
+                    </div>
+                </div>
+
+                <!-- 발생 환경 정보 -->
+                <div class="panel-gradient border-t-[3px] border-gray-400 flex flex-col">
+                    <h3 class="text-[14px] font-semibold text-gray-800 px-4 pt-1.5 pb-1 border-b border-gray-400">발생 환경 정보</h3>
+                    <div class="grid grid-cols-2 px-4 py-1.5 text-[12px] text-gray-800 flex-grow gap-y-0.5 leading-normal">
+                        <div>
+                            <span class="text-gray-600">서비스</span><br/>
+                            <span class="font-normal text-gray-900">사용자 인증</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">호스트</span><br/>
+                            <span class="font-normal text-gray-900">app-prod-02</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">배포 버전</span><br/>
+                            <span class="font-normal text-gray-900">v1.2.3</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">발생 빈도</span><br/>
+                            <span class="font-normal text-gray-900"><span class="font-bold text-[14px]">24</span>건 / 30분</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 원인 분석 -->
+            <div class="mb-0.5 panel-gradient border-t-[3px] border-gray-400">
+                <h3 class="text-[14px] font-semibold text-gray-800 px-4 pt-1.5 pb-1 border-b border-gray-400">원인 분석</h3>
+                <ul class="list-none px-4 py-1.5 text-[12px] text-gray-800 space-y-2 leading-relaxed">
+                    <li class="text-blue-600 font-medium"><i class="fas fa-dot-circle text-[8px] mr-1"></i>배포 환경 설정 오류: 최근 배포 시 `config.yaml` 파일이 누락되었거나, 잘못된 경로로 배포됨.</li>
+                    <li class="text-gray-800"><i class="fas fa-dot-circle text-[8px] mr-1"></i>CD/CI 파이프라인 문제: 빌드 또는 배포 스크립트가 `config.yaml` 파일을 포함하지 않거나, 잘못된 권한으로 배포하여 접근 불가.</li>
+                    <li class="text-[12px] text-gray-800"><i class="fas fa-dot-circle text-[8px] mr-1"></i>환경 변수 설정 미흡: 애플리케이션이 `config.yaml` 경로를 환경 변수로부터 로드하는데, 해당 변수가 올바르게 설정되지 않음.</li>
+                </ul>
+            </div>
+
+            <div class="grid grid-cols-2 gap-1.5">
+                <!-- 과거 유사 사건 -->
+                <div class="panel-gradient border-t-[3px] border-gray-400 flex flex-col">
+                    <h3 class="text-[14px] font-semibold text-gray-800 px-4 pt-1.5 pb-1 border-b border-gray-400">과거 유사 사건</h3>
+                    <ul class="list-disc list-inside px-4 py-1.5 text-[12px] text-gray-800 space-y-2 leading-relaxed flex-grow">
+                        <li><span class="font-semibold text-blue-600">2024-12-01 (클러스터 #98)</span>: 유사한 구성 파일 누락 발생. 당시 `db_config.json` 누락으로 데이터베이스 연결 실패. (관련 링크)</li>
+                        <li><span class="font-semibold text-blue-600">2024-11-15 (클러스터 #72)</span>: 신규 모듈 배포 시 라이브러리 파일 누락으로 서비스 시작 실패. 배포 프로세스 개선 후 해결. (관련 링크)</li>
+                    </ul>
+                </div>
+
+                <!-- 권장 대응 조치 -->
+                <div class="panel-gradient border-t-[3px] border-gray-400 flex flex-col">
+                    <h3 class="text-[14px] font-semibold text-gray-800 px-4 pt-1.5 pb-1 border-b border-gray-400">권장 대응 조치</h3>
+                    <ul class="list-disc list-inside px-4 py-1.5 text-[12px] text-gray-800 space-y-2 leading-relaxed flex-grow">
+                        <li>긴급 조치: 이전 안정 버전으로 롤백하거나, 누락된 `config.yaml` 파일을 수동으로 배포.</li>
+                        <li>원인 분석: CD/CI 파이프라인의 빌드 및 배포 스크립트 검토, `config.yaml` 파일 포함 여부 확인.</li>
+                        <li>예방 조치: 배포 전 설정 파일 존재 여부 검증 자동화, 롤백 절차 매뉴얼 업데이트.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 클러스터 카드 클릭 이벤트 시뮬레이션
+        document.querySelectorAll('.cluster-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // 기존 선택 제거
+                document.querySelectorAll('.cluster-card').forEach(c => {
+                    c.classList.remove('selected-cluster');
+                });
+                // 새로운 선택 추가
+                this.classList.add('selected-cluster');
+                
+                // 우측 패널 페이드 인 효과 제거 (불필요해짐)
+                /*
+                const rightPanel = document.querySelector('.flex-1.bg-white');
+                rightPanel.style.opacity = '0.7';
+                setTimeout(() => {
+                    rightPanel.style.opacity = '1';
+                }, 150);
+                */
+            });
+        });
+
+        // 실시간 업데이트 시뮬레이션
+        setInterval(() => {
+            const timestamp = document.querySelector('header span.text-gray-600 span');
+            const now = new Date();
+            timestamp.textContent = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        }, 1000);
+    </script>
+</body>
+</html> 
