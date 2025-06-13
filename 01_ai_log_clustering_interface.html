@@ -13,7 +13,7 @@
         }
         .cluster-card {
             border-left: 2px solid #D0D0D0;
-            background: #E8E8E8;
+            background: #F0F0F0;
         }
         .cluster-card:hover {
             background-color: #DDDDDD;
@@ -52,7 +52,7 @@
             background: #4A4A4A;
         }
         .panel-gradient {
-            background: #E8E8E8;
+            background: #F0F0F0;
             border: 1px solid #D0D0D0;
         }
         .status-box {
@@ -84,6 +84,31 @@
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #64748B 0%, #475569 100%);
         }
+        /* Navigation styles */
+        .nav-btn {
+            background: #D0D0D0;
+            color: #666666;
+            border: 1px solid #BBBBBB;
+        }
+        .nav-btn:hover {
+            background: #C0C0C0;
+            color: #333333;
+        }
+        .nav-active {
+            background: #5DADE2;
+            color: white;
+            border-color: #4A9BD1;
+        }
+        .nav-active:hover {
+            background: #4A9BD1;
+        }
+        /* Page content containers */
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: flex;
+        }
     </style>
 </head>
 <body class="font-sans min-h-screen flex flex-col text-[14px] font-normal">
@@ -91,7 +116,7 @@
     <header class="header-gradient border-b border-blue-300 px-2 py-1.5 flex-shrink-0 shadow-lg">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-1.5">
-                <h1 class="text-[20px] font-bold text-white">AI 로그 클러스터링 대시보드</h1>
+                <h1 class="text-[20px] font-bold text-white">EZIS 로그 분석 시스템</h1>
                 <span class="bg-white bg-opacity-20 text-white text-[10px] font-normal px-1 py-0.5 rounded-full border border-white border-opacity-30">실시간 분석</span>
             </div>
             <div class="flex items-center space-x-1 text-blue-100">
@@ -102,6 +127,30 @@
             </div>
         </div>
     </header>
+
+    <!-- 네비게이션 메뉴 -->
+    <nav class="bg-gray-300 border-b border-gray-400 px-2 py-1 flex-shrink-0">
+        <div class="flex items-center space-x-1">
+            <button onclick="showPage('clustering')" id="nav-clustering" class="nav-btn nav-active px-2 py-1 text-[11px] font-medium rounded transition-all">
+                <i class="fas fa-sitemap mr-1"></i>로그 클러스터링
+            </button>
+            <button onclick="showPage('pr')" id="nav-pr" class="nav-btn px-2 py-1 text-[11px] font-medium rounded transition-all">
+                <i class="fas fa-code-branch mr-1"></i>PR 인터페이스
+            </button>
+            <button onclick="showPage('timeline')" id="nav-timeline" class="nav-btn px-2 py-1 text-[11px] font-medium rounded transition-all">
+                <i class="fas fa-clock mr-1"></i>MapReduce 타임라인
+            </button>
+            <button onclick="showPage('incident')" id="nav-incident" class="nav-btn px-2 py-1 text-[11px] font-medium rounded transition-all">
+                <i class="fas fa-exclamation-triangle mr-1"></i>사건 전조 분석
+            </button>
+            <button onclick="showPage('report')" id="nav-report" class="nav-btn px-2 py-1 text-[11px] font-medium rounded transition-all">
+                <i class="fas fa-file-alt mr-1"></i>AI 리포트 요약
+            </button>
+            <button onclick="showPage('storage')" id="nav-storage" class="nav-btn px-2 py-1 text-[11px] font-medium rounded transition-all">
+                <i class="fas fa-database mr-1"></i>로그 저장 최적화
+            </button>
+        </div>
+    </nav>
 
     <!-- 시스템 모니터링 상태 -->
     <div class="bg-gray-200 border-b border-gray-400 px-2 py-1 flex-shrink-0">
@@ -126,7 +175,8 @@
         </div>
     </div>
 
-    <div class="flex flex-1 py-0.5 px-1.5">
+    <!-- 페이지 컨텐츠 컨테이너 -->
+    <div id="page-clustering" class="page-content active flex flex-1 py-0.5 px-1.5">
         <!-- 좌측 패널: 로그 클러스터 목록 -->
         <div class="w-[320px] panel-gradient mr-1.5 flex flex-col border-t-[3px] border-gray-400">
             <div class="px-4 py-1.5 border-b border-gray-400">
@@ -367,11 +417,11 @@
             </div>
 
             <!-- 실시간 로그 스트림 -->
-            <div class="mb-0.5">
-                <h3 class="text-[14px] font-semibold text-gray-800 mb-0.5">실시간 로그 스트림</h3>
-                <div class="flex h-[300px] gap-1">
+            <div class="mb-1">
+                <h3 class="text-[14px] font-semibold text-gray-800 mb-1">실시간 로그 스트림</h3>
+                <div class="flex h-[220px] gap-1">
                     <!-- 좌측: 로그 텍스트 (폭 더 줄임) -->
-                    <div class="flex-1 overflow-y-auto px-1 pt-1.5 pb-4 text-[9px] leading-normal bg-gray-500 border border-gray-400 text-gray-100">
+                    <div class="flex-1 overflow-y-auto px-1 pt-1.5 pb-4 text-[9px] leading-[1.6] bg-gray-500 border border-gray-400 text-gray-100">
                         <pre class="whitespace-pre-wrap">
 [2025-01-27 14:32:16] INFO User 'admin' logged in successfully
 [2025-01-27 14:32:17] DEBUG Starting processing request for API /data/fetch
@@ -413,37 +463,30 @@
                 </div>
             </div>
             <!-- AI 요약 분석 -->
-            <div class="mb-0.5 panel-gradient border-t-[3px] border-gray-400">
+            <div class="mb-1 panel-gradient border-t-[3px] border-gray-400">
                 <h3 class="text-[14px] font-semibold text-gray-800 px-4 pt-1.5 pb-1 border-b border-gray-400">AI 요약 분석</h3>
-                <div class="px-4 py-1.5 pb-6 space-y-2">
-                    <p class="text-[12px] text-gray-800 leading-normal">
-                        <span class="font-semibold text-blue-700">긴급 상황 감지:</span> 구성 파일 누락 오류가 최근 배포 직후부터 집중적으로 발생하고 있습니다. 
-                        현재 24건의 오류가 2분 전까지 지속적으로 보고되고 있으며, 사용자 인증 서비스에 치명적인 영향을 미치고 있습니다.
+                <div class="px-4 py-1.5 space-y-0">
+                    <p class="text-[12px] text-gray-800 leading-[1.5] mb-2">
+                        <span class="font-semibold text-blue-700">긴급 상황 감지:</span> 구성 파일 누락 오류가 최근 배포 직후부터 집중적으로 발생하고 있습니다. 현재 24건의 오류가 2분 전까지 지속적으로 보고되고 있으며, 사용자 인증 서비스에 치명적인 영향을 미치고 있습니다.
                     </p>
-                    <p class="text-[12px] text-gray-800 leading-normal">
-                        <span class="font-semibold text-blue-600">근본 원인 분석:</span> `config.yaml` 파일의 완전한 누락으로 인해 애플리케이션 초기화 과정에서 
-                        FileNotFoundException이 발생하고 있습니다. 이는 최근 v1.2.3 배포 과정에서 설정 파일이 올바르게 포함되지 않았거나, 
-                        배포 스크립트의 파일 경로 설정에 문제가 있을 가능성이 높습니다.
+                    <p class="text-[12px] text-gray-800 leading-[1.5] mb-2">
+                        <span class="font-semibold text-blue-600">근본 원인 분석:</span> `config.yaml` 파일의 완전한 누락으로 인해 애플리케이션 초기화 과정에서 FileNotFoundException이 발생하고 있습니다. 이는 최근 v1.2.3 배포 과정에서 설정 파일이 올바르게 포함되지 않았거나, 배포 스크립트의 파일 경로 설정에 문제가 있을 가능성이 높습니다.
                     </p>
-                    <p class="text-[12px] text-gray-800 leading-normal">
-                        <span class="font-semibold text-slate-600">비즈니스 영향도:</span> 사용자 인증 시스템의 완전한 중단으로 인해 신규 로그인, 세션 관리, 
-                        권한 검증 등 핵심 기능이 마비 상태입니다. 현재 활성 사용자들의 세션은 유지되고 있으나, 
-                        새로운 인증 요청은 모두 실패하고 있어 서비스 접근성에 심각한 문제가 발생하고 있습니다.
+                    <p class="text-[12px] text-gray-800 leading-[1.5] mb-2">
+                        <span class="font-semibold text-slate-600">비즈니스 영향도:</span> 사용자 인증 시스템의 완전한 중단으로 인해 신규 로그인, 세션 관리, 권한 검증 등 핵심 기능이 마비 상태입니다. 현재 활성 사용자들의 세션은 유지되고 있으나, 새로운 인증 요청은 모두 실패하고 있어 서비스 접근성에 심각한 문제가 발생하고 있습니다.
                     </p>
-                    <p class="text-[12px] text-gray-800 leading-normal">
-                        <span class="font-semibold text-slate-700">권장 조치사항:</span> 즉시 `config.yaml` 파일을 올바른 경로에 배치하고 애플리케이션을 재시작해야 합니다. 
-                        동시에 배포 파이프라인의 설정 파일 포함 여부를 검증하고, 향후 유사한 문제를 방지하기 위한 
-                        배포 전 검증 단계를 추가할 것을 강력히 권장합니다.
+                    <p class="text-[12px] text-gray-800 leading-[1.5]">
+                        <span class="font-semibold text-slate-700">권장 조치사항:</span> 즉시 `config.yaml` 파일을 올바른 경로에 배치하고 애플리케이션을 재시작해야 합니다. 동시에 배포 파이프라인의 설정 파일 포함 여부를 검증하고, 향후 유사한 문제를 방지하기 위한 배포 전 검증 단계를 추가할 것을 강력히 권장합니다.
                     </p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-1.5 mb-0.5">
+            <div class="grid grid-cols-2 gap-1.5 mb-1">
                 <!-- 위험도 평가 -->
                 <div class="bg-orange-100 border-t-[3px] border-orange-400 flex flex-col">
                     <h3 class="text-[14px] font-semibold text-gray-800 px-4 pt-1.5 pb-1 border-b border-orange-400">위험도 평가</h3>
-                    <div class="flex flex-col items-start px-4 py-1.5 flex-grow bg-orange-200 border-l-[4px] border-orange-400 text-[12px] text-gray-700 leading-normal">
-                        <div class="flex items-center space-x-0.5 text-[17px] text-orange-600 font-semibold mb-0.5">
+                    <div class="flex flex-col items-start px-4 py-1.5 flex-grow bg-orange-200 border-l-[4px] border-orange-400 text-[12px] text-gray-700 leading-[1.1]">
+                        <div class="flex items-center space-x-0.5 text-[17px] text-orange-600 font-semibold mb-1">
                             <span>높음 (5/5)</span>
                         </div>
                         <span>예상 영향도: <span class="font-semibold text-gray-900">서비스 중단 위험</span></span>
@@ -453,7 +496,7 @@
                 <!-- 발생 환경 정보 -->
                 <div class="panel-gradient border-t-[3px] border-gray-400 flex flex-col">
                     <h3 class="text-[14px] font-semibold text-gray-800 px-4 pt-1.5 pb-1 border-b border-gray-400">발생 환경 정보</h3>
-                    <div class="grid grid-cols-2 px-4 py-1.5 text-[12px] text-gray-800 flex-grow gap-y-0.5 leading-normal">
+                    <div class="grid grid-cols-2 px-4 py-1.5 text-[12px] text-gray-800 flex-grow gap-y-1 leading-[1.1]">
                         <div>
                             <span class="text-gray-600">서비스</span><br/>
                             <span class="font-normal text-gray-900">사용자 인증</span>
@@ -475,28 +518,27 @@
             </div>
             <!-- 원인 분석 -->
             <div class="mb-0.5 panel-gradient border-t-[3px] border-gray-400">
-                <h3 class="text-[14px] font-semibold text-gray-800 px-4 pt-1.5 pb-1 border-b border-gray-400">원인 분석</h3>
-                <ul class="list-none px-4 py-1.5 text-[12px] text-gray-800 space-y-2 leading-relaxed">
-                    <li class="text-blue-600 font-medium"><i class="fas fa-dot-circle text-[8px] mr-1"></i>배포 환경 설정 오류: 최근 배포 시 `config.yaml` 파일이 누락되었거나, 잘못된 경로로 배포됨.</li>
-                    <li class="text-gray-800"><i class="fas fa-dot-circle text-[8px] mr-1"></i>CD/CI 파이프라인 문제: 빌드 또는 배포 스크립트가 `config.yaml` 파일을 포함하지 않거나, 잘못된 권한으로 배포하여 접근 불가.</li>
-                    <li class="text-[12px] text-gray-800"><i class="fas fa-dot-circle text-[8px] mr-1"></i>환경 변수 설정 미흡: 애플리케이션이 `config.yaml` 경로를 환경 변수로부터 로드하는데, 해당 변수가 올바르게 설정되지 않음.</li>
+                <h3 class="text-[12px] font-semibold text-gray-800 px-3 pt-1 pb-0.5 border-b border-gray-400">원인 분석</h3>
+                <ul class="list-none px-3 py-1 text-[10px] text-gray-800 space-y-1 leading-tight">
+                    <li class="text-blue-600 font-medium"><i class="fas fa-dot-circle text-[6px] mr-1"></i>배포 환경 설정 오류: 최근 배포 시 `config.yaml` 파일이 누락되었거나, 잘못된 경로로 배포됨.</li>
+                    <li class="text-gray-800"><i class="fas fa-dot-circle text-[6px] mr-1"></i>CD/CI 파이프라인 문제: 빌드 또는 배포 스크립트가 `config.yaml` 파일을 포함하지 않거나, 잘못된 권한으로 배포하여 접근 불가.</li>
                 </ul>
             </div>
 
-            <div class="grid grid-cols-2 gap-1.5">
+            <div class="grid grid-cols-2 gap-1">
                 <!-- 과거 유사 사건 -->
                 <div class="panel-gradient border-t-[3px] border-gray-400 flex flex-col">
-                    <h3 class="text-[14px] font-semibold text-gray-800 px-4 pt-1.5 pb-1 border-b border-gray-400">과거 유사 사건</h3>
-                    <ul class="list-disc list-inside px-4 py-1.5 text-[12px] text-gray-800 space-y-2 leading-relaxed flex-grow">
-                        <li><span class="font-semibold text-blue-600">2024-12-01 (클러스터 #98)</span>: 유사한 구성 파일 누락 발생. 당시 `db_config.json` 누락으로 데이터베이스 연결 실패. (관련 링크)</li>
-                        <li><span class="font-semibold text-blue-600">2024-11-15 (클러스터 #72)</span>: 신규 모듈 배포 시 라이브러리 파일 누락으로 서비스 시작 실패. 배포 프로세스 개선 후 해결. (관련 링크)</li>
+                    <h3 class="text-[12px] font-semibold text-gray-800 px-3 pt-1 pb-0.5 border-b border-gray-400">과거 유사 사건</h3>
+                    <ul class="list-disc list-inside px-3 py-1 text-[10px] text-gray-800 space-y-1 leading-tight flex-grow">
+                        <li><span class="font-semibold text-blue-600">2024-12-01</span>: 유사한 구성 파일 누락 발생. 당시 `db_config.json` 누락으로 데이터베이스 연결 실패.</li>
+                        <li><span class="font-semibold text-blue-600">2024-11-15</span>: 신규 모듈 배포 시 라이브러리 파일 누락으로 서비스 시작 실패. 배포 프로세스 개선 후 해결.</li>
                     </ul>
                 </div>
 
                 <!-- 권장 대응 조치 -->
                 <div class="panel-gradient border-t-[3px] border-gray-400 flex flex-col">
-                    <h3 class="text-[14px] font-semibold text-gray-800 px-4 pt-1.5 pb-1 border-b border-gray-400">권장 대응 조치</h3>
-                    <ul class="list-disc list-inside px-4 py-1.5 text-[12px] text-gray-800 space-y-2 leading-relaxed flex-grow">
+                    <h3 class="text-[12px] font-semibold text-gray-800 px-3 pt-1 pb-0.5 border-b border-gray-400">권장 대응 조치</h3>
+                    <ul class="list-disc list-inside px-3 py-1 text-[10px] text-gray-800 space-y-1 leading-tight flex-grow">
                         <li>긴급 조치: 이전 안정 버전으로 롤백하거나, 누락된 `config.yaml` 파일을 수동으로 배포.</li>
                         <li>원인 분석: CD/CI 파이프라인의 빌드 및 배포 스크립트 검토, `config.yaml` 파일 포함 여부 확인.</li>
                         <li>예방 조치: 배포 전 설정 파일 존재 여부 검증 자동화, 롤백 절차 매뉴얼 업데이트.</li>
@@ -507,6 +549,21 @@
     </div>
 
     <script>
+        // 페이지 전환 함수
+        function showPage(pageId) {
+            const pageMap = {
+                'clustering': '01_ai_log_clustering_interface.html',
+                'pr': '02_PR_interface.html',
+                'timeline': '03_mapreduce_timeline.html',
+                'incident': '04_incident_precursor_analytics.html',
+                'report': '05_ai_report_summary.html',
+                'storage': '06_log_storage_optimization.html'
+            };
+            
+            if (pageMap[pageId]) {
+                window.location.href = pageMap[pageId];
+            }
+        }
         // 클러스터 카드 클릭 이벤트 시뮬레이션
         document.querySelectorAll('.cluster-card').forEach(card => {
             card.addEventListener('click', function() {

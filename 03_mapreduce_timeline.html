@@ -6,6 +6,7 @@
     <title>MapReduce 세션 청킹과 사건 타임라인</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="navigation.js"></script>
     <style>
         body {
             line-height: 1.45;
@@ -34,20 +35,20 @@
             background: #F0FDF4;
         }
         .session-info-card {
-            background: #F8F9FA;
+            background: #F0F0F0;
             border: 1px solid #D0D0D0;
             border-radius: 8px;
             padding: 16px;
         }
         .analysis-section {
-            background: white;
+            background: #F0F0F0;
             border: 1px solid #D0D0D0;
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 12px;
         }
         .similar-case-card {
-            background: #F8F9FA;
+            background: #F0F0F0;
             border: 1px solid #E5E7EB;
             border-radius: 6px;
             padding: 8px;
@@ -63,7 +64,7 @@
             background: #4A4A4A;
         }
         .panel-gradient {
-            background: #E8E8E8;
+            background: #F0F0F0;
             border: 1px solid #D0D0D0;
         }
     </style>
@@ -73,7 +74,7 @@
     <header class="header-gradient border-b border-gray-500 px-4 py-3 flex-shrink-0">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <h1 class="text-xl font-bold text-white">MapReduce 세션 청킹과 사건 타임라인</h1>
+                <h1 class="text-xl font-bold text-white">EZIS 로그 분석 시스템</h1>
                 <span class="bg-white bg-opacity-20 text-white text-xs px-2 py-1 rounded-full border border-white border-opacity-30">보안 분석</span>
             </div>
             <div class="flex items-center space-x-2 text-gray-200">
@@ -84,6 +85,21 @@
             </div>
         </div>
     </header>
+
+    <script>
+        // 헤더 바로 뒤에 네비게이션 추가
+        document.addEventListener('DOMContentLoaded', function() {
+            const header = document.querySelector('header');
+            const nav = document.createElement('div');
+            nav.innerHTML = createNavigation('timeline');
+            header.insertAdjacentElement('afterend', nav.firstElementChild);
+            
+            // CSS 추가
+            const style = document.createElement('style');
+            style.textContent = navigationCSS;
+            document.head.appendChild(style);
+        });
+    </script>
 
     <div class="flex-1 flex p-3 space-x-3 min-h-0">
         <!-- 좌측 패널 (사건 타임라인) -->
